@@ -67,10 +67,12 @@ namespace RefactorHeatAlertPostGre.Controllers
         {
             var logs = await _heatLogRepository.GetHistoryAsync(limit, offset);
             var totalCount = await _heatLogRepository.GetCountAsync();
+            var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
 
             var dtos = new List<HeatLogDto>();
             foreach (var log in logs)
             {
+                var phTime = TimeZoneInfo.ConvertTimeFromUtc(log.RecordedAt, phTimeZone);
                 var sensor = await _sensorRepository.GetByIdAsync(log.SensorId);
                 dtos.Add(new HeatLogDto
                 {
@@ -85,7 +87,7 @@ namespace RefactorHeatAlertPostGre.Controllers
                     Longitude = sensor != null ? (double)sensor.Longitude : 0,
                     RecordedAt = log.RecordedAt,
                     Date = log.RecordedAt.ToString("MMM dd, yyyy"),
-                    Time = log.RecordedAt.ToString("hh:mm tt"),
+                    Time = phTime.ToString("hh:mm tt"),
                     RelativeTime = GetRelativeTime(log.RecordedAt)
                 });
             }
