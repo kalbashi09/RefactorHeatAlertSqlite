@@ -28,9 +28,9 @@ namespace RefactorHeatAlertPostGre.Services
             _logger = logger;
         }
 
-        public async Task<AlertResult> ProcessHeatReadingAsync(Sensor sensor, int heatIndex, CancellationToken cancellationToken = default)
+        public async Task<AlertResult> ProcessHeatReadingAsync(Sensor sensor, int heatIndex, int humidity, CancellationToken cancellationToken = default)
         {
-            var result = _simulationService.CreateAlertResult(sensor, heatIndex);
+            var result = _simulationService.CreateAlertResult(sensor, heatIndex, humidity);
 
             // Always save to database
             await SaveHeatLogAsync(result, sensor.Id, cancellationToken);
@@ -82,6 +82,7 @@ namespace RefactorHeatAlertPostGre.Services
                 SensorId = sensorId,
                 RecordedTemp = result.HeatIndex,
                 HeatIndex = result.HeatIndex,
+                Humidity = result.Humidity,
                 RecordedAt = DateTime.UtcNow
             };
 
@@ -110,6 +111,7 @@ namespace RefactorHeatAlertPostGre.Services
                    $"📍 Location: {result.RelativeLocation} ({result.BarangayName})\n" +
                    $"🆔 Sensor: {result.SensorCode}\n" +
                    $"🔥 Heat Index: {result.HeatIndex}°C\n" +
+                   $"💧 Humidity: {result.Humidity}%\n" +
                    $"⏰ Time: {result.CreatedAt:hh:mm tt}";
         }
 
@@ -131,6 +133,7 @@ namespace RefactorHeatAlertPostGre.Services
                 
                 sb.AppendLine($"{emoji} *{spot.HeatIndex}°C* - {level.GetDisplayName()}");
                 sb.AppendLine($"📍 {spot.DisplayName} ({spot.BarangayName})");
+                sb.AppendLine($"💧 Humidity: {spot.Humidity}%");
                 if (spot.DisplayName.Contains("(Wokwi)"))
                 {
                     sb.AppendLine("🌐 Source: Wokwi Virtual Device");

@@ -43,5 +43,6 @@ namespace RefactorHeatAlertPostGre.Models.Dto
     {
         public int SensorId { get; set; }
         public int Temperature { get; set; }
+        public int Humidity { get; set; }
     }
 }

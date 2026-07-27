@@ -7,6 +7,7 @@ namespace RefactorHeatAlertPostGre.Models.Entities
         public int Id { get; set; }
         public int SensorId { get; set; }
         public int RecordedTemp { get; set; }
+        public int Humidity { get; set; }
         public int HeatIndex { get; set; }
         public DateTime RecordedAt { get; set; } = DateTime.UtcNow;
 

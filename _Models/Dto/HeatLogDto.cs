@@ -10,6 +10,7 @@ namespace RefactorHeatAlertPostGre.Models.Dto
         public string DisplayName { get; set; } = string.Empty;
         public string BarangayName { get; set; } = string.Empty;
         public int RecordedTemp { get; set; }
+        public int Humidity { get; set; }
         public int HeatIndex { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }

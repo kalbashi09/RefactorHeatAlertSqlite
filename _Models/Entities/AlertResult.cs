@@ -15,6 +15,7 @@ namespace RefactorHeatAlertPostGre.Models.Entities
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public int HeatIndex { get; set; }
+        public int Humidity { get; set; }
         public DateTime CreatedAt { get; set; }
         public string DangerLevel { get; set; } = string.Empty;
     }

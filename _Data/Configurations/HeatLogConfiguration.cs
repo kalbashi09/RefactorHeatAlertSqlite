@@ -27,6 +27,10 @@ namespace RefactorHeatAlertPostGre.Data.Configurations
             builder.Property(e => e.HeatIndex)
                 .HasColumnName("heat_index")
                 .IsRequired();
+            
+            builder.Property(e => e.Humidity)
+                .HasColumnName("humidity")
+                .IsRequired();
 
             builder.Property(e => e.RecordedAt)
                 .HasColumnName("recorded_at")

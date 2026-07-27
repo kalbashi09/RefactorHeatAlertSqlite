@@ -7,7 +7,7 @@ namespace RefactorHeatAlertPostGre.Services.Interfaces
         /// <summary>
         /// Processes a heat reading and broadcasts alert if danger level is high
         /// </summary>
-        Task<AlertResult> ProcessHeatReadingAsync(Sensor sensor, int heatIndex, CancellationToken cancellationToken = default);
+        Task<AlertResult> ProcessHeatReadingAsync(Sensor sensor, int heatIndex, int humidity, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Broadcasts a heartbeat summary of all alarming sensors

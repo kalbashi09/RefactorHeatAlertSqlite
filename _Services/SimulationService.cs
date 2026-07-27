@@ -49,6 +49,21 @@ namespace RefactorHeatAlertPostGre.Services
             return result;
         }
 
+        public int GenerateHumidity(Sensor sensor)
+        {
+            // Base humidity between 50-70%
+            int baseHumidity = _random.Next(50, 71);
+            
+            // Environment modifier
+            return sensor.EnvironmentType.ToLower() switch
+            {
+                "coastal" => Math.Min(baseHumidity + _random.Next(5, 15), 95), // More humid
+                "concrete" or "urban" => Math.Max(baseHumidity - _random.Next(5, 15), 30), // Drier
+                "vegetated" or "park" => Math.Min(baseHumidity + _random.Next(0, 10), 90), // Humid
+                _ => baseHumidity
+            };
+        }
+
         private int ApplyEnvironmentModifier(int temp, string environmentType)
         {
             return environmentType.ToLower() switch
@@ -73,7 +88,7 @@ namespace RefactorHeatAlertPostGre.Services
             };
         }
 
-        public AlertResult CreateAlertResult(Sensor sensor, int heatIndex)
+        public AlertResult CreateAlertResult(Sensor sensor, int heatIndex, int humidity)
         {
             return new AlertResult
             {
@@ -84,6 +99,7 @@ namespace RefactorHeatAlertPostGre.Services
                 Latitude = (double)sensor.Latitude,
                 Longitude = (double)sensor.Longitude,
                 HeatIndex = heatIndex,
+                Humidity = humidity,
                 CreatedAt = GetPhilippineTime(),
                 DangerLevel = GetDangerLevel(heatIndex).GetDisplayName()
             };

@@ -50,6 +50,7 @@ namespace RefactorHeatAlertPostGre.Controllers
                 Latitude = sensor != null ? (double)sensor.Latitude : 0,
                 Longitude = sensor != null ? (double)sensor.Longitude : 0,
                 HeatIndex = latest.HeatIndex,
+                Humidity = latest.Humidity,
                 CreatedAt = latest.RecordedAt,
                 DangerLevel = _alertService.ShouldSendAlert(latest.HeatIndex) ? "ALERT" : "NORMAL"
             };
@@ -83,6 +84,7 @@ namespace RefactorHeatAlertPostGre.Controllers
                     BarangayName = sensor?.Barangay ?? "Unknown",
                     RecordedTemp = log.RecordedTemp,
                     HeatIndex = log.HeatIndex,
+                    Humidity = log.Humidity,
                     Latitude = sensor != null ? (double)sensor.Latitude : 0,
                     Longitude = sensor != null ? (double)sensor.Longitude : 0,
                     RecordedAt = log.RecordedAt,
@@ -123,7 +125,7 @@ namespace RefactorHeatAlertPostGre.Controllers
             if (!sensor.IsActive)
                 return BadRequest(ApiResponse<object>.Fail("Sensor is inactive"));
 
-            var result = await _alertService.ProcessHeatReadingAsync(sensor, request.Temperature);
+            var result = await _alertService.ProcessHeatReadingAsync(sensor, request.Temperature, request.Humidity);
 
             return Ok(ApiResponse<object>.Ok(new { 
                 message = "Report processed", 
@@ -172,7 +174,7 @@ namespace RefactorHeatAlertPostGre.Controllers
                 _logger.LogInformation($"Created new external sensor: {sensorCode}");
             }
 
-            await _alertService.ProcessHeatReadingAsync(sensor, (int)reading.Temperature);
+            await _alertService.ProcessHeatReadingAsync(sensor, (int)reading.Temperature, (int)reading.Humidity);
             return Ok(new { message = "Sensor reading processed successfully." });
         }
     }

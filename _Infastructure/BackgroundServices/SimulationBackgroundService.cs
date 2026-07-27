@@ -77,7 +77,7 @@ namespace RefactorHeatAlertPostGre.Infrastructure.BackgroundServices
                     var latestLog = latestLogs.FirstOrDefault();
                     if (latestLog != null)
                     {
-                        var result = simulationService.CreateAlertResult(sensor, latestLog.HeatIndex);
+                        var result = simulationService.CreateAlertResult(sensor, latestLog.HeatIndex, latestLog.Humidity);
                         batchResults.Add(result);
                     }
                 }
@@ -87,13 +87,15 @@ namespace RefactorHeatAlertPostGre.Infrastructure.BackgroundServices
                     if (SimulationService.TryGetManualSession(sensor.Id, out var session))
                     {
                         var heatIndex = session.FixedHeatIndex;
-                        var result = simulationService.CreateAlertResult(sensor, heatIndex);
+                        var humidity = simulationService.GenerateHumidity(sensor);
+                        var result = simulationService.CreateAlertResult(sensor, heatIndex, humidity);
                         
                         await heatLogRepository.CreateAsync(new HeatLog
                         {
                             SensorId = sensor.Id,
                             RecordedTemp = heatIndex,
                             HeatIndex = heatIndex,
+                            Humidity = 60, 
                             RecordedAt = DateTime.UtcNow
                         }, cancellationToken);
                         batchResults.Add(result);
@@ -107,7 +109,8 @@ namespace RefactorHeatAlertPostGre.Infrastructure.BackgroundServices
                     {
                         // Normal simulation
                         var heatIndex = simulationService.GenerateReading(sensor);
-                        var result = await alertService.ProcessHeatReadingAsync(sensor, heatIndex, cancellationToken);
+                        var humidity = simulationService.GenerateHumidity(sensor);
+                        var result = await alertService.ProcessHeatReadingAsync(sensor, heatIndex, humidity, cancellationToken);
                         batchResults.Add(result);
                     }
                 }

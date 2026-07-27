@@ -10,6 +10,8 @@ namespace RefactorHeatAlertPostGre.Services.Interfaces
         /// </summary>
         int GenerateReading(Sensor sensor);
 
+        int GenerateHumidity(Sensor sensor);
+
         /// <summary>
         /// Runs a complete simulation cycle for all active sensors
         /// </summary>
@@ -23,6 +25,6 @@ namespace RefactorHeatAlertPostGre.Services.Interfaces
         /// <summary>
         /// Formats a heat reading into an AlertResult
         /// </summary>
-        AlertResult CreateAlertResult(Sensor sensor, int heatIndex);
+        AlertResult CreateAlertResult(Sensor sensor, int heatIndex, int humidity);
     }
 }

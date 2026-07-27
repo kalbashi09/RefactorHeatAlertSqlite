@@ -390,7 +390,7 @@ namespace RefactorHeatAlertPostGre.Services
             SimulationService.SetManualOverride(sensor.Id, targetHeat, 5);
 
             // Process and broadcast
-            var result = await alertService.ProcessHeatReadingAsync(sensor, targetHeat, cancellationToken);
+           var result = await alertService.ProcessHeatReadingAsync(sensor, targetHeat, 60, cancellationToken);
 
             await botClient.SendMessage(
                 chatId: chatId,
