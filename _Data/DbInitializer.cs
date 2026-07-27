@@ -9,7 +9,29 @@ namespace RefactorHeatAlertPostGre.Data
         {
             // Apply pending migrations (if any - should already be done)
             // await context.Database.MigrateAsync();
-            // OPTIONAL: Seed static sensors if none exist (using your real sensor list)
+
+            // Seed default admin if none exists
+            if (!await context.AdminUsers.AnyAsync())
+            {
+                var defaultAdmin = new AdminUser
+                {
+                    PersonnelId = "ADMIN001",
+                    PasscodeHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                    FullName = "System Administrator",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                context.AdminUsers.Add(defaultAdmin);
+                await context.SaveChangesAsync();
+                Console.WriteLine("✅ Default admin user seeded (ADMIN001 / admin123).");
+            }
+            else
+            {
+                Console.WriteLine("✅ Admin users already exist. Skipping admin seed.");
+            }
+
+            // Seed static sensors if none exist
             if (!await context.Sensors.AnyAsync(s => s.SensorCode.StartsWith("TAL-")))
             {
                 var staticSensors = new List<Sensor>
