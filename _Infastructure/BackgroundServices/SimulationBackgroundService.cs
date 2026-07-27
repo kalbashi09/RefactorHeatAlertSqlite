@@ -77,8 +77,18 @@ namespace RefactorHeatAlertPostGre.Infrastructure.BackgroundServices
                     var latestLog = latestLogs.FirstOrDefault();
                     if (latestLog != null)
                     {
-                        var result = simulationService.CreateAlertResult(sensor, latestLog.HeatIndex, latestLog.Humidity);
-                        batchResults.Add(result);
+                        // Define a threshold (e.g., 1 minutes)
+                        var isStale = (DateTime.UtcNow - latestLog.RecordedAt).TotalMinutes > 3;
+
+                        if (!isStale) 
+                        {
+                            var result = simulationService.CreateAlertResult(sensor, latestLog.HeatIndex, latestLog.Humidity);
+                            batchResults.Add(result);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Sensor {Code} is offline (last reading at {Time})", sensor.SensorCode, latestLog.RecordedAt);
+                        }
                     }
                 }
                 else
