@@ -35,7 +35,7 @@ namespace RefactorHeatAlertPostGre.Services
             if (roll <= 85) // 85% chance: Normal fluctuations
             {
                 int normalValue = _random.Next(baseline - 5, baseline + 8);
-                result = Math.Clamp(normalValue, 25, 41);
+                result = Math.Clamp(normalValue, 25, 30);
             }
             else // 15% chance: Extreme swings
             {
