@@ -99,7 +99,7 @@ namespace RefactorHeatAlertPostGre.Services
 
         public bool ShouldSendAlert(int heatIndex)
         {
-            return heatIndex >= 38; // Caution level and above
+            return heatIndex >= 32; // Caution level and above
         }
 
         public string FormatAlertMessage(AlertResult result)

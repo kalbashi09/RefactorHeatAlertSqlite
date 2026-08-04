@@ -4,7 +4,7 @@
 
 **HeatAlert** is a real‑time heat index monitoring and alerting system for Talisay City, Cebu. It collects temperature readings from a network of **static sensors**, **mobile Telegram‑based sensors**, and **external devices** (such as hardware sensors or virtual simulators like Wokwi). When dangerous heat levels are detected, alerts are broadcast via a Telegram bot. A live web map and an admin dashboard provide visualisation and management.
 
-This document describes the **fully refactored version** of the system, which replaces a monolithic, raw‑SQL spaghetti codebase with a clean, layered architecture built on **.NET 10**, **Entity Framework Core**, **PostgreSQL**, and **Telegram.Bot**. The refactoring introduces dependency injection, separation of concerns, automated background services, and a robust deployment setup for **Render** and **Neon**.
+This document describes the **fully refactored version** of the system, which replaces a monolithic, raw‑SQL spaghetti codebase with a clean, layered architecture built on **.NET 10**, **Entity Framework Core**, **PostgreSQL**, **SQLite** and **Telegram.Bot**. The refactoring introduces dependency injection, separation of concerns, automated background services, and a robust deployment setup for **Render** and **Neon**.
 
 ---
 
@@ -124,6 +124,7 @@ RefactorHeatAlertPostGre/
 
 - **.NET SDK 10.0** or later
 - **PostgreSQL** (local or Neon cloud)
+- **Sqlite** (Unified Deployed) [Alternative DATABASE option]
 - **Telegram Bot Token** (from [@BotFather](https://t.me/BotFather))
 - **Render account** (for deployment, optional)
 
@@ -162,7 +163,8 @@ The application supports the following environment variables (overriding `appset
 | Variable                     | Description                                                    | Required       |
 | ---------------------------- | -------------------------------------------------------------- | -------------- |
 | `NEON_DATABASE_URL`          | Neon PostgreSQL connection URL (overrides `DefaultConnection`) | For production |
-| `DATABASE_URL`               | Alternative name for Neon URL                                  | For production |
+| `DATABASE_URL`              | Alternative name for Neon URL                                  | For production |
+| `ConnectionStrings__DefaultConnection`              | Best for SQLite                               | For prototyping |
 | `BotSettings__TelegramToken` | Telegram Bot token                                             | Yes            |
 | `ApiSettings__ApiKey`        | API key for protected endpoints                                | Yes            |
 | `RENDER_PING_URL`            | URL for keep‑alive self‑ping (defaults to Render backend URL)  | No             |
@@ -174,7 +176,7 @@ The application supports the following environment variables (overriding `appset
 ### 5.1 Entity Framework Core Setup
 
 - **DbContext**: `AppDbContext` with `DbSet<T>` for `Sensor`, `HeatLog`, `Subscriber`, `AdminUser`.
-- **Fluent Configurations**: Located in `Data/Configurations/`. They map entity properties to PostgreSQL table/column names and define indexes.
+- **Fluent Configurations**: Located in `Data/Configurations/`. They map entity properties to PostgreSQL and SQLite table/column names and define indexes.
 - **Migrations**: Use `dotnet ef migrations add <Name>` and `dotnet ef database update` to manage schema changes.
 
 ### 5.2 Tables
@@ -569,5 +571,206 @@ The refactored HeatAlert system is now:
 - **Cloud‑ready** – runs on Render + Neon.
 - **Developer‑friendly** – well‑structured and logged.
 - **Extensible** – supports internal simulation and external hardware.
+
+## 16. FlowChart
+
+```text
+                           +----------------------+
+                           |   HeatAlert System   |
+                           +----------+-----------+
+                                      |
+                    +-----------------+-----------------+
+                    |                                   |
+                    |                                   |
+          Internal Simulation                 External Sensor
+                    |                         (ESP32/Wokwi/API)
+                    |                                   |
++--------------------------------+         +------------------------------+
+| SimulationBackgroundService    |         | AlertsController             |
+| (Runs every 30 seconds)        |         | ReceiveWokwiReading()        |
++---------------+----------------+         +--------------+---------------+
+                |                                         |
+                v                                         |
++--------------------------------+                        |
+| SensorRepository               |<-----------------------+
+| Get Active Sensors             |
++---------------+----------------+
+                |
+                v
++--------------------------------+
+| SimulationService              |
+| Generate Temperature           |
+| Generate Humidity              |
+| Apply Location Modifiers       |
++---------------+----------------+
+                |
+                +-----------------------------+
+                                              |
+                                              v
+                              +-------------------------------+
+                              | AlertService                  |
+                              | ProcessHeatReadingAsync()     |
+                              +---------------+---------------+
+                                              |
+                +-----------------------------+------------------------------+
+                |                             |                              |
+                |                             |                              |
+                v                             v                              v
+      Validate Sensor             Create AlertResult               Save Heat Log
+      (SensorRepository)         (SimulationService)            (HeatLogRepository)
+                |                             |                              |
+                |                             |                              |
+                +-----------------------------+------------------------------+
+                                              |
+                                              v
+                                +-----------------------------+
+                                | heat_alert.db (SQLite)      |
+                                | Source of Truth             |
+                                +-------------+---------------+
+                                              |
+                                              v
+                              +-------------------------------+
+                              | ShouldSendAlert()?            |
+                              | Heat Index >= 38°C            |
+                              +-------------+-----------------+
+                                            |
+                          +-----------------+-----------------+
+                          |                                   |
+                         No                                  Yes
+                          |                                   |
+                          |                                   v
+                          |                 +-------------------------------+
+                          |                 | NotificationService           |
+                          |                 +---------------+---------------+
+                          |                                 |
+                          |                                 v
+                          |                 +-------------------------------+
+                          |                 | TelegramBotService            |
+                          |                 | Telegram Bot API              |
+                          |                 +---------------+---------------+
+                          |                                 |
+                          |                                 v
+                          |                 +-------------------------------+
+                          |                 | User receives Telegram Alert  |
+                          |                 | + Map Button                  |
+                          |                 +-------------------------------+
+                          |
+                          |
+                          v
+              +---------------------------------------+
+              | AlertsController                      |
+              | /current                              |
+              | /history                              |
+              +----------------+----------------------+
+                               |
+                               v
+                     +-------------------------+
+                     | HeatLogRepository       |
+                     +------------+------------+
+                                  |
+                                  v
+                     +-------------------------+
+                     | HeatLogDto              |
+                     | PH Time Conversion      |
+                     +------------+------------+
+                                  |
+                 +----------------+----------------+
+                 |                                 |
+                 v                                 v
+      +----------------------+          +-----------------------+
+      | mapUI.js             |          | admindash.js          |
+      | Latest Readings      |          | Sensor CRUD           |
+      | Hottest Now          |          | Excel Reports         |
+      | MapLibre Display     |          |                       |
+      +----------------------+          +-----------------------+
+```
+
+---
+
+### Simplified Data Flow
+
+```text
+Sensor
+   │
+   ▼
+Simulation OR Wokwi API
+   │
+   ▼
+AlertService
+   │
+   ├────────► Validate Sensor
+   │
+   ├────────► Calculate Heat Index
+   │
+   ├────────► Save to SQLite
+   │
+   └────────► Heat Index ≥ 38°C ?
+                     │
+            ┌────────┴────────┐
+            │                 │
+           No                Yes
+            │                 │
+            ▼                 ▼
+      Wait for Next      Telegram Notification
+         Reading             to User
+```
+
+---
+
+### Overall Architecture Diagram
+
+```text
+                    +--------------------------------+
+                    |          Users                 |
+                    |  Browser / Telegram            |
+                    +---------------+----------------+
+                                    ^
+                                    |
+                          REST API / Telegram
+                                    |
+                    +---------------+----------------+
+                    | ASP.NET Core Web API           |
+                    | AlertsController               |
+                    +---------------+----------------+
+                                    |
+                        Business Logic Layer
+                                    |
+                    +---------------+----------------+
+                    | AlertService                  |
+                    +---------------+----------------+
+                                    |
+           +------------------------+------------------------+
+           |                                                 |
+           v                                                 v
++--------------------------+                  +----------------------------+
+| SimulationService        |                  | NotificationService        |
++------------+-------------+                  +-------------+--------------+
+             |                                              |
+             v                                              v
++--------------------------+                  +----------------------------+
+| SimulationBackgroundSvc  |                  | TelegramBotService         |
++------------+-------------+                  +----------------------------+
+             |
+             v
++--------------------------+
+| SensorRepository         |
++------------+-------------+
+             |
+             v
++--------------------------+
+| HeatLogRepository        |
++------------+-------------+
+             |
+             v
++--------------------------+
+| SQLite (heat_alert.db)   |
++--------------------------+
+```
+
+These three diagrams serve different purposes:
+
+* **Flowchart**: Shows the complete execution flow from sensor input to notification and frontend.
+* **Data Flow Diagram**: Focuses on how a reading is processed.
+* **Architecture Diagram**: Shows the relationship between services, repositories, database, and clients.
 
 This documentation serves as the definitive reference for the project.

@@ -82,8 +82,8 @@ namespace RefactorHeatAlertPostGre.Services
             {
                 >= 49 => DangerLevel.ExtremeDanger,
                 >= 42 => DangerLevel.Danger,
-                >= 38 => DangerLevel.Caution,
-                >= 26 => DangerLevel.Normal,
+                >= 32 => DangerLevel.Caution,
+                >= 25 => DangerLevel.Normal,
                 _ => DangerLevel.Cool
             };
         }
