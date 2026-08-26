@@ -112,16 +112,28 @@ namespace RefactorHeatAlertPostGre.Infrastructure.BackgroundServices
                         SimulationService.DecrementManualSession(sensor.Id);
                         if (session.RemainingCycles <= 1)
                         {
-                            _logger.LogInformation("Manual session expired for sensor {Code}", sensor.SensorCode);
+                            _logger.LogInformation("Manual session expired for sensor {Code}. Deactivating.", sensor.SensorCode);
+                            
+                            // NEW: Deactivate in database
+                            sensor.IsActive = false;
+                            await sensorRepository.UpdateAsync(sensor, cancellationToken);
+                            
+                            // Clear the session
+                            SimulationService.ClearManualSession(sensor.Id);
                         }
                     }
-                    else
+                    else if (sensor.SensorCode != "MOBILE")
                     {
-                        // Normal simulation
+                        // Normal simulation for non-MOBILE sensors
                         var heatIndex = simulationService.GenerateReading(sensor);
                         var humidity = simulationService.GenerateHumidity(sensor);
                         var result = await alertService.ProcessHeatReadingAsync(sensor, heatIndex, humidity, cancellationToken);
                         batchResults.Add(result);
+                    }
+                    else
+                    {
+                        // MOBILE sensor, no manual session - skip simulation
+                        _logger.LogDebug("MOBILE sensor inactive, skipping simulation.");
                     }
                 }
 
