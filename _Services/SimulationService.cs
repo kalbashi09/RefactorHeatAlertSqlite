@@ -35,12 +35,12 @@ namespace RefactorHeatAlertPostGre.Services
             if (roll <= 85) // 85% chance: Normal fluctuations
             {
                 int normalValue = _random.Next(baseline - 5, baseline + 8);
-                result = Math.Clamp(normalValue, 25, 30);
+                result = Math.Clamp(normalValue, 22, 30);
             }
             else // 15% chance: Extreme swings
             {
                 int extremeValue = _random.Next(baseline - 20, baseline + 40);
-                result = Math.Clamp(extremeValue, 15, 89);
+                result = Math.Clamp(extremeValue, 5, 45);
             }
 
             // Apply environment modifier
@@ -51,16 +51,18 @@ namespace RefactorHeatAlertPostGre.Services
 
         public int GenerateHumidity(Sensor sensor)
         {
-            // Base humidity between 50-70%
-            int baseHumidity = _random.Next(50, 71);
+            // Base humidity between 40-70%
+            int baseHumidity = _random.Next(30, 71);
             
             // Environment modifier
             return sensor.EnvironmentType.ToLower() switch
             {
-                "coastal" => Math.Min(baseHumidity + _random.Next(5, 15), 95), // More humid
-                "concrete" or "urban" => Math.Max(baseHumidity - _random.Next(5, 15), 30), // Drier
-                "vegetated" or "park" => Math.Min(baseHumidity + _random.Next(0, 10), 90), // Humid
-                _ => baseHumidity
+                "indoor-ac" => Math.Max(baseHumidity - _random.Next(15, 25), 25), // AC removes moisture, very dry
+                "outdoor-pavement" => Math.Max(baseHumidity - _random.Next(10, 20), 30), // Concrete/urban heat island is drier
+                "outdoor-shade" => Math.Min(baseHumidity + _random.Next(5, 10), 80), // Shade traps slightly more humidity than direct sun
+                "outdoor-sun" => baseHumidity, // Standard baseline
+                "indoor" => Math.Min(baseHumidity + _random.Next(0, 5), 65), // Normal indoor
+                _ => baseHumidity // "Unknown" or fallback
             };
         }
 
@@ -68,11 +70,12 @@ namespace RefactorHeatAlertPostGre.Services
         {
             return environmentType.ToLower() switch
             {
-                "concrete" or "urban" => Math.Min(temp + _random.Next(1, 4), 89),
-                "vegetated" or "park" => Math.Max(temp - _random.Next(1, 3), 15),
-                "coastal" => temp - _random.Next(0, 2),
-                "industrial" => Math.Min(temp + _random.Next(2, 5), 89),
-                _ => temp
+                "indoor-ac" => Math.Max(temp - _random.Next(4, 8), 18), // AC cools it down significantly
+                "indoor" => Math.Max(temp - _random.Next(1, 3), 20), // Slightly cooler than outside
+                "outdoor-shade" => Math.Max(temp - _random.Next(1, 3), 22), // Shade is cooler than direct sun
+                "outdoor-sun" => Math.Min(temp + _random.Next(1, 3), 45), // Direct sun adds radiant heat
+                "outdoor-pavement" => Math.Min(temp + _random.Next(3, 6), 45), // Pavement radiates extra heat
+                _ => temp // "Unknown" or fallback
             };
         }
 
