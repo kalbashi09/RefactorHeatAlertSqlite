@@ -191,9 +191,9 @@ namespace RefactorHeatAlertPostGre.Services
                 sb.AppendLine($"{emoji} *{spot.HeatIndex}°C* - {level.GetDisplayName()}");
                 sb.AppendLine($"📍 {spot.DisplayName} ({spot.BarangayName})");
                 sb.AppendLine($"💧 Humidity: {spot.Humidity}%");
-                if (spot.DisplayName.Contains("(Wokwi)"))
+                if (spot.DisplayName.Contains("(External)"))
                 {
-                    sb.AppendLine("🌐 Source: Wokwi Virtual Device");
+                    sb.AppendLine("🌐 Source: External Virtual Device");
                 }
                 sb.AppendLine();
             }
