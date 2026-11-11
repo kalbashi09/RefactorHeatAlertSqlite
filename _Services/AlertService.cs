@@ -34,52 +34,69 @@ namespace RefactorHeatAlertPostGre.Services
         // I added a safety clamp to prevent physically impossible temperatures from corrupting the data.
         // I built this method to calculate the official NOAA Heat Index using the Rothfusz regression equation.
         // I added a double-layer safety clamp to prevent polynomial divergence and garbage data.
+        
         private int CalculateHeatIndex(double tempCelsius, double humidity)
         {
-            // LAYER 1: INPUT CLAMP
-            // The NOAA polynomial mathematically explodes (produces garbage) above ~45°C (113°F).
-            // We cap the input at 45°C to keep the formula in its valid, accurate range.
-            if (tempCelsius > 45.0) tempCelsius = 45.0;
-            if (tempCelsius < 10.0) tempCelsius = 10.0;
+            // LAYER 1: INPUT SAFETY CLAMPS
+            // Application-specific safeguards, not NOAA requirements.
+            tempCelsius = Math.Clamp(tempCelsius, 10.0, 45.0);
+            humidity = Math.Clamp(humidity, 0.0, 100.0);
 
+            // Convert Celsius to Fahrenheit
             double T = (tempCelsius * 9.0 / 5.0) + 32.0;
             double RH = humidity;
-            
-            if (T < 80.0)
+
+            // STEP 1: SIMPLIFIED STEADMAN FORMULA
+            double HI_simple = 0.5 *
+                (T + 61.0 + ((T - 68.0) * 1.2) + (RH * 0.094));
+
+            // STEP 2: AVERAGE WITH ACTUAL TEMPERATURE
+            double HI = (HI_simple + T) / 2.0;
+
+            // STEP 3: APPLY ROTHFUSZ ONLY IF INITIAL HI >= 80°F
+            if (HI >= 80.0)
             {
-                return (int)Math.Round(tempCelsius);
+                HI = -42.379 +
+                    (2.04901523 * T) +
+                    (10.14333127 * RH) -
+                    (0.22475541 * T * RH) -
+                    (0.00683783 * T * T) -
+                    (0.05481717 * RH * RH) +
+                    (0.00122874 * T * T * RH) +
+                    (0.00085282 * T * RH * RH) -
+                    (0.00000199 * T * T * RH * RH);
+
+                // LOW HUMIDITY ADJUSTMENT
+                if (RH < 13.0 && T >= 80.0 && T <= 112.0)
+                {
+                    double adjustment =
+                        ((13.0 - RH) / 4.0) *
+                        Math.Sqrt((17.0 - Math.Abs(T - 95.0)) / 17.0);
+
+                    HI -= adjustment;
                 }
-            
-            double HI = -42.379 + 
-                        (2.04901523 * T) + 
-                        (10.14333127 * RH) - 
-                        (0.22475541 * T * RH) - 
-                        (0.00683783 * T * T) - 
-                        (0.05481717 * RH * RH) + 
-                        (0.00122874 * T * T * RH) + 
-                        (0.00085282 * T * RH * RH) - 
-                        (0.00000199 * T * T * RH * RH);
-            
-            if (RH < 13 && T >= 80 && T <= 112)
-            {
-                double adjustment = ((13 - RH) / 4.0) * Math.Sqrt((17 - Math.Abs(T - 95.0)) / 17.0);
-                HI -= adjustment;
+                // HIGH HUMIDITY ADJUSTMENT
+                else if (RH > 85.0 && T >= 80.0 && T <= 87.0)
+                {
+                    double adjustment =
+                        ((RH - 85.0) / 10.0) *
+                        ((87.0 - T) / 5.0);
+
+                    HI += adjustment;
+                }
             }
-            else if (RH > 85 && T >= 80 && T <= 87)
-            {
-                double adjustment = ((RH - 85) / 10.0) * ((87 - T) / 5.0);
-                HI += adjustment;
-            }
-            
+
+            // STEP 4: CONVERT BACK TO CELSIUS
             double heatIndexCelsius = (HI - 32.0) * 5.0 / 9.0;
-            
-            // LAYER 2: OUTPUT CLAMP
-            // Even with clamped input, we ensure the final Heat Index never exceeds a physically 
-            // realistic maximum. (70°C is already apocalyptic and beyond human survival).
-            if (heatIndexCelsius > 70.0) heatIndexCelsius = 70.0;
-            
+
+            // LAYER 2: APPLICATION-SPECIFIC OUTPUT SAFETY CLAMP
+            // This 70°C ceiling is not part of NOAA's formula.
+            if (heatIndexCelsius > 70.0)
+                heatIndexCelsius = 70.0;
+
             return (int)Math.Round(heatIndexCelsius);
         }
+
 
         public async Task<AlertResult> ProcessHeatReadingAsync(Sensor sensor, int temperature, int humidity, CancellationToken cancellationToken = default)
         {

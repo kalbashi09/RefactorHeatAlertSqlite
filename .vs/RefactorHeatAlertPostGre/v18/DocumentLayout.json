@@ -1,0 +1,54 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Programming\\ToDefend\\RefactorHeatAlertSqlite\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{9A9BDAB2-5307-6BFB-1793-7D6305F312F6}|RefactorHeatAlertPostGre.csproj|c:\\programming\\todefend\\refactorheatalertsqlite\\_infastructure\\backgroundservices\\simulationbackgroundservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9A9BDAB2-5307-6BFB-1793-7D6305F312F6}|RefactorHeatAlertPostGre.csproj|solutionrelative:_infastructure\\backgroundservices\\simulationbackgroundservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9A9BDAB2-5307-6BFB-1793-7D6305F312F6}|RefactorHeatAlertPostGre.csproj|c:\\programming\\todefend\\refactorheatalertsqlite\\_infastructure\\backgroundservices\\renderkeepaliveservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9A9BDAB2-5307-6BFB-1793-7D6305F312F6}|RefactorHeatAlertPostGre.csproj|solutionrelative:_infastructure\\backgroundservices\\renderkeepaliveservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "SimulationBackgroundService.cs",
+              "DocumentMoniker": "C:\\Programming\\ToDefend\\RefactorHeatAlertSqlite\\_Infastructure\\BackgroundServices\\SimulationBackgroundService.cs",
+              "RelativeDocumentMoniker": "_Infastructure\\BackgroundServices\\SimulationBackgroundService.cs",
+              "ToolTip": "C:\\Programming\\ToDefend\\RefactorHeatAlertSqlite\\_Infastructure\\BackgroundServices\\SimulationBackgroundService.cs",
+              "RelativeToolTip": "_Infastructure\\BackgroundServices\\SimulationBackgroundService.cs",
+              "ViewState": "AgIAABcAAAAAAAAAAAAIwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-03T03:10:16.562Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "RenderKeepAliveService.cs",
+              "DocumentMoniker": "C:\\Programming\\ToDefend\\RefactorHeatAlertSqlite\\_Infastructure\\BackgroundServices\\RenderKeepAliveService.cs",
+              "RelativeDocumentMoniker": "_Infastructure\\BackgroundServices\\RenderKeepAliveService.cs",
+              "ToolTip": "C:\\Programming\\ToDefend\\RefactorHeatAlertSqlite\\_Infastructure\\BackgroundServices\\RenderKeepAliveService.cs",
+              "RelativeToolTip": "_Infastructure\\BackgroundServices\\RenderKeepAliveService.cs",
+              "ViewState": "AgIAACoAAAAAAAAAAAAmwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-03T03:10:11.917Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
